@@ -4,7 +4,7 @@ from aiogram import Bot, F, Router
 from aiogram.types import CallbackQuery, ReplyKeyboardRemove
 
 from keyboards import answer_options_kb, main_menu_kb, next_task_kb
-from storage import user_sessions
+from storage import empty_stats, user_sessions
 from tasks import TASKS
 
 router = Router()
@@ -42,16 +42,18 @@ def format_task_text(
 
 async def send_current_task(chat_id: int, bot: Bot, user_id: int) -> None:
     session = user_sessions[user_id]
-    figure_tasks = get_tasks_by_figure(session["figure"])
+    figure = session["figure"]
+    figure_tasks = get_tasks_by_figure(figure)
     index = session["index"]
+    figure_stats = session["stats"][figure]
 
     if index >= len(figure_tasks):
         await bot.send_message(
             chat_id,
             f"Задачи по теме закончились.\n\n"
-            f"Тема: {FIGURE_LABELS.get(session['figure'], session['figure'])}\n"
-            f"Верно: {session['correct']}\n"
-            f"Неверно: {session['wrong']}",
+            f"Тема: {FIGURE_LABELS.get(figure, figure)}\n"
+            f"Верно: {figure_stats['correct']}\n"
+            f"Неверно: {figure_stats['wrong']}",
             reply_markup=main_menu_kb(),
         )
         return
@@ -64,8 +66,8 @@ async def send_current_task(chat_id: int, bot: Bot, user_id: int) -> None:
             task,
             index + 1,
             len(figure_tasks),
-            session["correct"],
-            session["wrong"],
+            figure_stats["correct"],
+            figure_stats["wrong"],
         ),
         reply_markup=answer_options_kb(task["id"]),
     )
@@ -76,12 +78,13 @@ async def start_tasks(callback: CallbackQuery, bot: Bot) -> None:
     figure = callback.data.split(":")[1]
     user_id = callback.from_user.id
 
+    existing_stats = user_sessions.get(user_id, {}).get("stats", empty_stats())
+
     user_sessions[user_id] = {
         "figure": figure,
         "index": 0,
         "answered_task_ids": set(),
-        "correct": 0,
-        "wrong": 0,
+        "stats": existing_stats,
     }
 
     await callback.answer()
@@ -109,19 +112,21 @@ async def check_answer(callback: CallbackQuery) -> None:
 
     task = next(task for task in TASKS if task["id"] == task_id)
     correct_option = task["correct_option"]
+    figure = session["figure"]
+    figure_stats = session["stats"][figure]
 
     session["answered_task_ids"].add(task_id)
     await callback.message.edit_reply_markup(reply_markup=None)
 
     if selected_option == correct_option:
-        session["correct"] += 1
+        figure_stats["correct"] += 1
         text = (
             f"✅ Верно!\n\n"
             f"Правильный ответ: {correct_option}) {task['options'][correct_option]}\n\n"
             f"Решение:\n{task['solution']}"
         )
     else:
-        session["wrong"] += 1
+        figure_stats["wrong"] += 1
         text = (
             f"❌ Неверно.\n\n"
             f"Правильный ответ: {correct_option}) {task['options'][correct_option]}\n\n"

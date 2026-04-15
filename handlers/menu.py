@@ -9,6 +9,14 @@ from texts import HELP_TEXT
 router = Router()
 
 
+FIGURE_LABELS = {
+    "triangle": "Треугольник",
+    "parallelogram": "Параллелограмм",
+    "rhombus": "Ромб",
+    "trapezoid": "Трапеция",
+}
+
+
 @router.message(CommandStart())
 async def cmd_start(message: Message) -> None:
     await message.answer(
@@ -36,24 +44,42 @@ async def my_tasks(message: Message) -> None:
 async def my_stats(message: Message) -> None:
     session = user_sessions.get(message.from_user.id)
 
-    if not session:
-        await message.answer(
-            "Статистика пока пустая. Сначала реши хотя бы одну тему."
-        )
+    if not session or not session.get("stats"):
+        await message.answer("Статистика пока пустая. Сначала реши хотя бы одну задачу.")
         return
 
-    total_answered = session["correct"] + session["wrong"]
-    percent = 0
-    if total_answered > 0:
-        percent = round(session["correct"] / total_answered * 100)
+    stats = session["stats"]
+    total_correct = sum(item["correct"] for item in stats.values())
+    total_wrong = sum(item["wrong"] for item in stats.values())
+    total_answered = total_correct + total_wrong
 
-    await message.answer(
-        "Моя статистика:\n\n"
-        f"Последняя тема: {session['figure']}\n"
-        f"Верно: {session['correct']}\n"
-        f"Неверно: {session['wrong']}\n"
-        f"Точность: {percent}%"
+    if total_answered == 0:
+        await message.answer("Статистика пока пустая. Сначала реши хотя бы одну задачу.")
+        return
+
+    total_percent = round(total_correct / total_answered * 100)
+
+    lines = ["Моя статистика:\n"]
+
+    for figure_code, figure_name in FIGURE_LABELS.items():
+        figure_correct = stats[figure_code]["correct"]
+        figure_wrong = stats[figure_code]["wrong"]
+        figure_answered = figure_correct + figure_wrong
+
+        if figure_answered == 0:
+            figure_percent = 0
+        else:
+            figure_percent = round(figure_correct / figure_answered * 100)
+
+        lines.append(
+            f"{figure_name}: {figure_correct} верно, {figure_wrong} неверно, точность {figure_percent}%"
+        )
+
+    lines.append(
+        f"\nОбщий результат: {total_correct} верно, {total_wrong} неверно, точность {total_percent}%"
     )
+
+    await message.answer("\n".join(lines))
 
 
 @router.message(F.text == "Смешанный режим")
