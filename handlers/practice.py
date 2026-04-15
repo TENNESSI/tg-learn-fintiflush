@@ -7,6 +7,8 @@ from keyboards import answer_options_kb, main_menu_kb, next_task_kb
 from storage import empty_stats, user_sessions
 from tasks import TASKS
 
+import random
+
 router = Router()
 
 
@@ -16,6 +18,22 @@ FIGURE_LABELS = {
     "rhombus": "Ромб",
     "trapezoid": "Трапеция",
 }
+
+
+def figure_name_ru(figure: str) -> str:
+    names = {
+        "triangle": "Треугольник",
+        "parallelogram": "Параллелограмм",
+        "rhombus": "Ромб",
+        "trapezoid": "Трапеция",
+    }
+    return names.get(figure, figure)
+
+
+def get_mixed_tasks():
+    tasks = TASKS[:]
+    random.shuffle(tasks)
+    return tasks
 
 
 def get_tasks_by_figure(figure: str) -> list[dict[str, Any]]:
@@ -40,25 +58,60 @@ def format_task_text(
     )
 
 
-async def send_current_task(chat_id: int, bot: Bot, user_id: int) -> None:
+async def send_current_task(chat_id: int, bot: Bot, user_id: int):
     session = user_sessions[user_id]
-    figure = session["figure"]
-    figure_tasks = get_tasks_by_figure(figure)
     index = session["index"]
-    figure_stats = session["stats"][figure]
+
+    if session["mode"] == "mixed":
+        if not session["task_ids"]:
+            mixed_tasks = get_mixed_tasks()
+            session["task_ids"] = [task["id"] for task in mixed_tasks]
+
+        if index >= len(session["task_ids"]):
+            await bot.send_message(
+                chat_id,
+                f"Смешанный режим завершён.\n\n"
+                f"Итог:\n"
+                f"Верно: {session['correct']}\n"
+                f"Неверно: {session['wrong']}",
+                reply_markup=main_menu_kb()
+            )
+            return
+
+        task_id = session["task_ids"][index]
+        task = next(task for task in TASKS if task["id"] == task_id)
+
+        await bot.send_message(
+            chat_id,
+            (
+                f"Смешанный режим\n"
+                f"Тема: {figure_name_ru(task['figure'])}\n\n"
+                + format_task_text(
+                    task,
+                    index + 1,
+                    len(session["task_ids"]),
+                    session["correct"],
+                    session["wrong"]
+                )
+            ),
+            reply_markup=answer_options_kb(task["id"])
+        )
+        return
+
+    figure_tasks = get_tasks_by_figure(session["figure"])
 
     if index >= len(figure_tasks):
         await bot.send_message(
             chat_id,
             f"Задачи по теме закончились.\n\n"
-            f"Тема: {FIGURE_LABELS.get(figure, figure)}\n"
-            f"Верно: {figure_stats['correct']}\n"
-            f"Неверно: {figure_stats['wrong']}",
-            reply_markup=main_menu_kb(),
+            f"Итог:\n"
+            f"Верно: {session['correct']}\n"
+            f"Неверно: {session['wrong']}",
+            reply_markup=main_menu_kb()
         )
         return
 
-    task: dict[str, Any] = figure_tasks[index]
+    task = figure_tasks[index]
 
     await bot.send_message(
         chat_id,
@@ -66,10 +119,10 @@ async def send_current_task(chat_id: int, bot: Bot, user_id: int) -> None:
             task,
             index + 1,
             len(figure_tasks),
-            figure_stats["correct"],
-            figure_stats["wrong"],
+            session["correct"],
+            session["wrong"]
         ),
-        reply_markup=answer_options_kb(task["id"]),
+        reply_markup=answer_options_kb(task["id"])
     )
 
 
@@ -81,9 +134,13 @@ async def start_tasks(callback: CallbackQuery, bot: Bot) -> None:
     existing_stats = user_sessions.get(user_id, {}).get("stats", empty_stats())
 
     user_sessions[user_id] = {
+        "mode": "figure",
         "figure": figure,
         "index": 0,
         "answered_task_ids": set(),
+        "correct": 0,
+        "wrong": 0,
+        "task_ids": [],
         "stats": existing_stats,
     }
 
@@ -112,21 +169,25 @@ async def check_answer(callback: CallbackQuery) -> None:
 
     task = next(task for task in TASKS if task["id"] == task_id)
     correct_option = task["correct_option"]
-    figure = session["figure"]
+    figure = task["figure"]
     figure_stats = session["stats"][figure]
 
     session["answered_task_ids"].add(task_id)
     await callback.message.edit_reply_markup(reply_markup=None)
 
     if selected_option == correct_option:
+        session["correct"] += 1
         figure_stats["correct"] += 1
+
         text = (
             f"✅ Верно!\n\n"
             f"Правильный ответ: {correct_option}) {task['options'][correct_option]}\n\n"
             f"Решение:\n{task['solution']}"
         )
     else:
+        session["wrong"] += 1
         figure_stats["wrong"] += 1
+
         text = (
             f"❌ Неверно.\n\n"
             f"Правильный ответ: {correct_option}) {task['options'][correct_option]}\n\n"

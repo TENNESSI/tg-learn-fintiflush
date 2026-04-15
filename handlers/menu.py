@@ -1,10 +1,11 @@
-from aiogram import F, Router
+from aiogram import F, Router, Bot
 from aiogram.filters import CommandStart
-from aiogram.types import Message
+from aiogram.types import Message, ReplyKeyboardRemove
 
 from keyboards import figures_kb, main_menu_kb
-from storage import user_sessions
+from storage import user_sessions, empty_stats
 from texts import HELP_TEXT
+from handlers.practice import send_current_task
 
 router = Router()
 
@@ -83,8 +84,26 @@ async def my_stats(message: Message) -> None:
 
 
 @router.message(F.text == "Смешанный режим")
-async def mixed_mode(message: Message) -> None:
-    await message.answer("Смешанный режим пока не реализован.")
+async def mixed_mode(message: Message, bot: Bot):
+    user_id = message.from_user.id
+    existing_stats = user_sessions.get(user_id, {}).get("stats", empty_stats())
+
+    user_sessions[user_id] = {
+        "mode": "mixed",
+        "figure": None,
+        "index": 0,
+        "answered_task_ids": set(),
+        "correct": 0,
+        "wrong": 0,
+        "task_ids": [],
+        "stats": existing_stats,
+    }
+
+    await message.answer(
+        "Смешанный режим запущен.",
+        reply_markup=ReplyKeyboardRemove()
+    )
+    await send_current_task(message.chat.id, bot, user_id)
 
 
 @router.message(F.text == "Справка")
