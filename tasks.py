@@ -6,7 +6,7 @@ TASKS = [
         "options": {"A": "348", "B": "174", "C": "172", "D": "170"},
         "correct_option": "B",
         "correct_answer": "174",
-        "solution": "S = 1/2 * a * h = 1/2 * 29 * 12 = 174."
+        "solution": "S = 1/2 * a * h = 1/2 * 29 * 12 = 174.",
     },
     {
         "id": "triangle_2",
@@ -15,7 +15,7 @@ TASKS = [
         "options": {"A": "13", "B": "6", "C": "8", "D": "4"},
         "correct_option": "B",
         "correct_answer": "6",
-        "solution": "Площадь одна и та же: 1/2 * 12 * 3 = 1/2 * 6 * h. Отсюда 18 = 3h, значит h = 6."
+        "solution": "Площадь одна и та же: 1/2 * 12 * 3 = 1/2 * 6 * h. Отсюда 18 = 3h, значит h = 6.",
     },
     {
         "id": "triangle_3",
@@ -24,7 +24,7 @@ TASKS = [
         "options": {"A": "65", "B": "130", "C": "60", "D": "30"},
         "correct_option": "A",
         "correct_answer": "65",
-        "solution": "S = 1/2 * 13 * 10 = 65."
+        "solution": "S = 1/2 * 13 * 10 = 65.",
     },
     {
         "id": "triangle_4",
@@ -33,7 +33,7 @@ TASKS = [
         "options": {"A": "1200", "B": "1500", "C": "750", "D": "1300"},
         "correct_option": "A",
         "correct_answer": "1200",
-        "solution": "Высота к основанию делит основание пополам: 30 и 30. h = sqrt(50^2 - 30^2) = 40. Тогда S = 1/2 * 60 * 40 = 1200."
+        "solution": "Высота к основанию делит основание пополам: 30 и 30. h = sqrt(50^2 - 30^2) = 40. Тогда S = 1/2 * 60 * 40 = 1200.",
     },
     {
         "id": "triangle_5",
@@ -42,7 +42,7 @@ TASKS = [
         "options": {"A": "1200", "B": "4608", "C": "750", "D": "768"},
         "correct_option": "D",
         "correct_answer": "768",
-        "solution": "Боковые стороны равны: (144 - 64) / 2 = 40. Высота к основанию: h = sqrt(40^2 - 32^2) = 24. Площадь: S = 1/2 * 64 * 24 = 768."
+        "solution": "Боковые стороны равны: (144 - 64) / 2 = 40. Высота к основанию: h = sqrt(40^2 - 32^2) = 24. Площадь: S = 1/2 * 64 * 24 = 768.",
     },
     {
         "id": "triangle_6",
@@ -51,9 +51,8 @@ TASKS = [
         "options": {"A": "40", "B": "10", "C": "25", "D": "20"},
         "correct_option": "D",
         "correct_answer": "20",
-        "solution": "S = 1/2 * 5 * 8 = 20."
+        "solution": "S = 1/2 * 5 * 8 = 20.",
     },
-
     {
         "id": "parallelogram_1",
         "figure": "parallelogram",
@@ -61,7 +60,7 @@ TASKS = [
         "options": {"A": "7", "B": "4", "C": "3", "D": "2"},
         "correct_option": "D",
         "correct_answer": "2",
-        "solution": "S = AD * BE = 35. Так как BE = 5, то AD = 7. При этом AD = AE + ED = AE + 5, значит AE = 2."
+        "solution": "S = AD * BE = 35. Так как BE = 5, то AD = 7. При этом AD = AE + ED = AE + 5, значит AE = 2.",
     },
     {
         "id": "parallelogram_2",
@@ -70,7 +69,7 @@ TASKS = [
         "options": {"A": "4", "B": "12", "C": "20", "D": "3"},
         "correct_option": "B",
         "correct_answer": "12",
-        "solution": "В прямоугольном треугольнике BDC: BC^2 = AD^2 - BD^2 = 25 - 16 = 9, значит BC = 3. Площадь S = BD * BC = 4 * 3 = 12."
+        "solution": "В прямоугольном треугольнике BDC: BC^2 = AD^2 - BD^2 = 25 - 16 = 9, значит BC = 3. Площадь S = BD * BC = 4 * 3 = 12.",
     },
     {
         "id": "parallelogram_3",
@@ -79,7 +78,7 @@ TASKS = [
         "options": {"A": "5", "B": "6", "C": "135", "D": "90"},
         "correct_option": "B",
         "correct_answer": "6",
-        "solution": "Площадь S = 9 * 10 = 90. Тогда 15 * h = 90, значит h = 6."
+        "solution": "Площадь S = 9 * 10 = 90. Тогда 15 * h = 90, значит h = 6.",
     },
     {
         "id": "parallelogram_4",
@@ -88,9 +87,8 @@ TASKS = [
         "options": {"A": "42", "B": "49", "C": "5", "D": "8"},
         "correct_option": "A",
         "correct_answer": "42",
-        "solution": "Высота к стороне 6 равна 14 * sin(30°) = 7. Тогда S = 6 * 7 = 42."
+        "solution": "Высота к стороне 6 равна 14 * sin(30°) = 7. Тогда S = 6 * 7 = 42.",
     },
-
     {
         "id": "trapezoid_1",
         "figure": "trapezoid",
@@ -98,7 +96,7 @@ TASKS = [
         "options": {"A": "60", "B": "62", "C": "70", "D": "65"},
         "correct_option": "A",
         "correct_answer": "60",
-        "solution": "Высота h = 4√2 * sin(135°) = 4. Тогда S = (18 + 12) / 2 * 4 = 60."
+        "solution": "Высота h = 4√2 * sin(135°) = 4. Тогда S = (18 + 12) / 2 * 4 = 60.",
     },
     {
         "id": "trapezoid_2",
@@ -107,7 +105,7 @@ TASKS = [
         "options": {"A": "172", "B": "1728", "C": "1800", "D": "1650"},
         "correct_option": "B",
         "correct_answer": "1728",
-        "solution": "Половина разности оснований: (104 - 40) / 2 = 32. Высота h = sqrt(40^2 - 32^2) = 24. Тогда S = (40 + 104) / 2 * 24 = 1728."
+        "solution": "Половина разности оснований: (104 - 40) / 2 = 32. Высота h = sqrt(40^2 - 32^2) = 24. Тогда S = (40 + 104) / 2 * 24 = 1728.",
     },
     {
         "id": "trapezoid_3",
@@ -116,7 +114,7 @@ TASKS = [
         "options": {"A": "24√6", "B": "24", "C": "24√3", "D": "25"},
         "correct_option": "C",
         "correct_answer": "24√3",
-        "solution": "S = 1/2 * d1 * d2 * sin(60°) = 1/2 * 12 * 8 * √3/2 = 24√3."
+        "solution": "S = 1/2 * d1 * d2 * sin(60°) = 1/2 * 12 * 8 * √3/2 = 24√3.",
     },
     {
         "id": "trapezoid_4",
@@ -125,7 +123,7 @@ TASKS = [
         "options": {"A": "18", "B": "24", "C": "20", "D": "22"},
         "correct_option": "B",
         "correct_answer": "24",
-        "solution": "Разность оснований HD = 10 - 6 = 4. В прямоугольном треугольнике CHD: CH = sqrt(5^2 - 4^2) = 3. Тогда S = (10 + 6) / 2 * 3 = 24."
+        "solution": "Разность оснований HD = 10 - 6 = 4. В прямоугольном треугольнике CHD: CH = sqrt(5^2 - 4^2) = 3. Тогда S = (10 + 6) / 2 * 3 = 24.",
     },
     {
         "id": "trapezoid_5",
@@ -134,9 +132,8 @@ TASKS = [
         "options": {"A": "40", "B": "50", "C": "60", "D": "25"},
         "correct_option": "B",
         "correct_answer": "50",
-        "solution": "Площадь трапеции равна сумме площадей двух треугольников: 20 + 30 = 50."
+        "solution": "Площадь трапеции равна сумме площадей двух треугольников: 20 + 30 = 50.",
     },
-
     {
         "id": "rhombus_1",
         "figure": "rhombus",
@@ -144,7 +141,7 @@ TASKS = [
         "options": {"A": "70", "B": "72", "C": "82", "D": "64"},
         "correct_option": "B",
         "correct_answer": "72",
-        "solution": "h = a * sin(30°), значит a = 6 / 0.5 = 12. Тогда S = a * h = 12 * 6 = 72."
+        "solution": "h = a * sin(30°), значит a = 6 / 0.5 = 12. Тогда S = a * h = 12 * 6 = 72.",
     },
     {
         "id": "rhombus_2",
@@ -153,7 +150,7 @@ TASKS = [
         "options": {"A": "20", "B": "12√3", "C": "18", "D": "18√3"},
         "correct_option": "D",
         "correct_answer": "18√3",
-        "solution": "Сторона a = 24 / 4 = 6. Высота h = 6 * sin(60°) = 3√3. Тогда S = 6 * 3√3 = 18√3."
+        "solution": "Сторона a = 24 / 4 = 6. Высота h = 6 * sin(60°) = 3√3. Тогда S = 6 * 3√3 = 18√3.",
     },
     {
         "id": "rhombus_3",
@@ -162,7 +159,7 @@ TASKS = [
         "options": {"A": "20", "B": "32", "C": "32√3", "D": "32√2"},
         "correct_option": "D",
         "correct_answer": "32√2",
-        "solution": "S = a^2 * sin(45°) = 64 * √2 / 2 = 32√2."
+        "solution": "S = a^2 * sin(45°) = 64 * √2 / 2 = 32√2.",
     },
     {
         "id": "rhombus_4",
@@ -171,7 +168,7 @@ TASKS = [
         "options": {"A": "14000", "B": "8100", "C": "6400", "D": "7000"},
         "correct_option": "D",
         "correct_answer": "7000",
-        "solution": "S = d1 * d2 / 2 = 140 * 100 / 2 = 7000."
+        "solution": "S = d1 * d2 / 2 = 140 * 100 / 2 = 7000.",
     },
     {
         "id": "rhombus_5",
@@ -180,6 +177,6 @@ TASKS = [
         "options": {"A": "60", "B": "30", "C": "65", "D": "70"},
         "correct_option": "A",
         "correct_answer": "60",
-        "solution": "S = a * h = 10 * 6 = 60."
-    }
+        "solution": "S = a * h = 10 * 6 = 60.",
+    },
 ]
