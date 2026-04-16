@@ -1,15 +1,15 @@
-from aiogram import F, Router, Bot
-from aiogram.filters import CommandStart
+from aiogram import Bot, F, Router
+from aiogram.filters import CommandStart, Command
 from aiogram.types import Message, ReplyKeyboardRemove
 
-from keyboards import figures_kb, main_menu_kb
+from config import TEACHER_IDS
+from database import ensure_user, get_user_role, get_user_stats, set_user_role
+from handlers.practice import send_current_task
+from keyboards import figures_kb, main_menu_kb, teacher_menu_kb
 from storage import user_sessions
 from texts import HELP_TEXT
-from handlers.practice import send_current_task
-from database import ensure_user, get_user_stats
 
 router = Router()
-
 
 FIGURE_NAMES = {
     "triangle": "Треугольник",
@@ -51,42 +51,139 @@ def format_stats_text(stats: dict[str, dict[str, int]]) -> str:
 
 @router.message(CommandStart())
 async def cmd_start(message: Message) -> None:
+    user_id = message.from_user.id
+
+    ensure_user(
+        user_id,
+        full_name=message.from_user.full_name,
+    )
+
+    role = get_user_role(user_id)
+    if not role:
+        set_user_role(user_id, "student")
+        role = "student"
+
+    if role == "teacher" and user_id in TEACHER_IDS:
+        await message.answer(
+            "Привет! Режим учителя активен.",
+            reply_markup=teacher_menu_kb(),
+        )
+    else:
+        if role != "student":
+            set_user_role(user_id, "student")
+
+        await message.answer(
+            "Привет! Я учебный бот по геометрии.\nВыбери нужный раздел:",
+            reply_markup=main_menu_kb(),
+        )
+
+
+@router.message(Command("teacher"))
+async def teacher_command(message: Message) -> None:
+    user_id = message.from_user.id
+
+    if user_id not in TEACHER_IDS:
+        await message.answer("У тебя нет доступа к режиму учителя.")
+        return
+
+    ensure_user(
+        user_id,
+        full_name=message.from_user.full_name,
+    )
+    set_user_role(user_id, "teacher")
+
     await message.answer(
-        "Привет! Я учебный бот по геометрическим фигурам.\nВыбери нужный раздел:",
+        "Режим учителя включён.",
+        reply_markup=teacher_menu_kb(),
+    )
+
+
+@router.message(F.text == "Режим учителя")
+async def switch_to_teacher(message: Message) -> None:
+    user_id = message.from_user.id
+
+    if user_id not in TEACHER_IDS:
+        await message.answer("У тебя нет доступа к режиму учителя.")
+        return
+
+    ensure_user(
+        user_id,
+        full_name=message.from_user.full_name,
+    )
+    set_user_role(user_id, "teacher")
+
+    await message.answer(
+        "Режим учителя включён.",
+        reply_markup=teacher_menu_kb(),
+    )
+
+
+@router.message(F.text == "Режим ученика")
+async def switch_to_student(message: Message) -> None:
+    user_id = message.from_user.id
+
+    ensure_user(
+        user_id,
+        full_name=message.from_user.full_name,
+    )
+    set_user_role(user_id, "student")
+
+    await message.answer(
+        "Режим ученика включён.",
         reply_markup=main_menu_kb(),
     )
 
 
 @router.message(F.text == "Выбрать фигуру")
 async def choose_figure(message: Message) -> None:
-    await message.answer("Выбери фигуру:", reply_markup=figures_kb())
+    if get_user_role(message.from_user.id) != "student":
+        return
+
+    await message.answer(
+        "Выбери фигуру:",
+        reply_markup=figures_kb(),
+    )
 
 
 @router.message(F.text == "Назад")
 async def back_to_main(message: Message) -> None:
-    await message.answer("Главное меню:", reply_markup=main_menu_kb())
+    role = get_user_role(message.from_user.id)
 
-
-@router.message(F.text == "Мои задания")
-async def my_tasks(message: Message) -> None:
-    await message.answer("Здесь будут задания, которые назначил учитель.\n\nПока список пуст.")
+    if role == "teacher" and message.from_user.id in TEACHER_IDS:
+        await message.answer(
+            "Меню учителя:",
+            reply_markup=teacher_menu_kb(),
+        )
+    else:
+        await message.answer(
+            "Главное меню:",
+            reply_markup=main_menu_kb(),
+        )
 
 
 @router.message(F.text == "Моя статистика")
 async def my_stats(message: Message) -> None:
+    if get_user_role(message.from_user.id) != "student":
+        return
+
     user_id = message.from_user.id
 
-    ensure_user(user_id)
+    ensure_user(
+        user_id,
+        full_name=message.from_user.full_name,
+    )
     stats = get_user_stats(user_id)
 
     await message.answer(format_stats_text(stats))
 
 
 @router.message(F.text == "Смешанный режим")
-async def mixed_mode(message: Message, bot: Bot):
+async def mixed_mode(message: Message, bot: Bot) -> None:
+    if get_user_role(message.from_user.id) != "student":
+        return
+
     user_id = message.from_user.id
 
-    ensure_user(user_id)
     user_sessions[user_id] = {
         "mode": "mixed",
         "figure": None,
@@ -99,7 +196,7 @@ async def mixed_mode(message: Message, bot: Bot):
 
     await message.answer(
         "Смешанный режим запущен.",
-        reply_markup=ReplyKeyboardRemove()
+        reply_markup=ReplyKeyboardRemove(),
     )
     await send_current_task(message.chat.id, bot, user_id)
 

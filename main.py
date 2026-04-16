@@ -4,15 +4,14 @@ import os
 from aiogram import Bot, Dispatcher
 from dotenv import load_dotenv
 
-from handlers.menu import router as menu_router
-from handlers.theory import router as theory_router
-from handlers.practice import router as practice_router
-
 from database import init_db
+from handlers.assignments import router as assignments_router
+from handlers.menu import router as menu_router
+from handlers.practice import router as practice_router
+from handlers.theory import router as theory_router
+from config import BOT_TOKEN
 
 load_dotenv()
-
-BOT_TOKEN = os.getenv("BOT_TOKEN")
 
 
 def validate_token() -> None:
@@ -21,8 +20,8 @@ def validate_token() -> None:
 
 
 async def main() -> None:
-    init_db()
     validate_token()
+    init_db()
 
     bot = Bot(token=BOT_TOKEN)
     dp = Dispatcher()
@@ -30,6 +29,7 @@ async def main() -> None:
     dp.include_router(menu_router)
     dp.include_router(theory_router)
     dp.include_router(practice_router)
+    dp.include_router(assignments_router)
 
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)
