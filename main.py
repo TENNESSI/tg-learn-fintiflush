@@ -8,6 +8,8 @@ from handlers.menu import router as menu_router
 from handlers.theory import router as theory_router
 from handlers.practice import router as practice_router
 
+from database import init_db
+
 load_dotenv()
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
@@ -19,6 +21,7 @@ def validate_token() -> None:
 
 
 async def main() -> None:
+    init_db()
     validate_token()
 
     bot = Bot(token=BOT_TOKEN)

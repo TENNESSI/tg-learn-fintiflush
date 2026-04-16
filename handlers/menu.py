@@ -3,19 +3,50 @@ from aiogram.filters import CommandStart
 from aiogram.types import Message, ReplyKeyboardRemove
 
 from keyboards import figures_kb, main_menu_kb
-from storage import user_sessions, empty_stats
+from storage import user_sessions
 from texts import HELP_TEXT
 from handlers.practice import send_current_task
+from database import ensure_user, get_user_stats
 
 router = Router()
 
 
-FIGURE_LABELS = {
+FIGURE_NAMES = {
     "triangle": "Треугольник",
     "parallelogram": "Параллелограмм",
     "rhombus": "Ромб",
     "trapezoid": "Трапеция",
 }
+
+
+def format_stats_text(stats: dict[str, dict[str, int]]) -> str:
+    total_correct = 0
+    total_wrong = 0
+
+    lines = ["Моя статистика:\n"]
+
+    for figure in ("triangle", "parallelogram", "rhombus", "trapezoid"):
+        correct = stats.get(figure, {}).get("correct", 0)
+        wrong = stats.get(figure, {}).get("wrong", 0)
+        total = correct + wrong
+        accuracy = round(correct / total * 100) if total else 0
+
+        total_correct += correct
+        total_wrong += wrong
+
+        lines.append(
+            f"{FIGURE_NAMES[figure]}: {correct} верно, {wrong} неверно, точность {accuracy}%"
+        )
+
+    total_answers = total_correct + total_wrong
+    total_accuracy = round(total_correct / total_answers * 100) if total_answers else 0
+
+    lines.append("")
+    lines.append(
+        f"Общий результат: {total_correct} верно, {total_wrong} неверно, точность {total_accuracy}%"
+    )
+
+    return "\n".join(lines)
 
 
 @router.message(CommandStart())
@@ -43,51 +74,19 @@ async def my_tasks(message: Message) -> None:
 
 @router.message(F.text == "Моя статистика")
 async def my_stats(message: Message) -> None:
-    session = user_sessions.get(message.from_user.id)
+    user_id = message.from_user.id
 
-    if not session or not session.get("stats"):
-        await message.answer("Статистика пока пустая. Сначала реши хотя бы одну задачу.")
-        return
+    ensure_user(user_id)
+    stats = get_user_stats(user_id)
 
-    stats = session["stats"]
-    total_correct = sum(item["correct"] for item in stats.values())
-    total_wrong = sum(item["wrong"] for item in stats.values())
-    total_answered = total_correct + total_wrong
-
-    if total_answered == 0:
-        await message.answer("Статистика пока пустая. Сначала реши хотя бы одну задачу.")
-        return
-
-    total_percent = round(total_correct / total_answered * 100)
-
-    lines = ["Моя статистика:\n"]
-
-    for figure_code, figure_name in FIGURE_LABELS.items():
-        figure_correct = stats[figure_code]["correct"]
-        figure_wrong = stats[figure_code]["wrong"]
-        figure_answered = figure_correct + figure_wrong
-
-        if figure_answered == 0:
-            figure_percent = 0
-        else:
-            figure_percent = round(figure_correct / figure_answered * 100)
-
-        lines.append(
-            f"{figure_name}: {figure_correct} верно, {figure_wrong} неверно, точность {figure_percent}%"
-        )
-
-    lines.append(
-        f"\nОбщий результат: {total_correct} верно, {total_wrong} неверно, точность {total_percent}%"
-    )
-
-    await message.answer("\n".join(lines))
+    await message.answer(format_stats_text(stats))
 
 
 @router.message(F.text == "Смешанный режим")
 async def mixed_mode(message: Message, bot: Bot):
     user_id = message.from_user.id
-    existing_stats = user_sessions.get(user_id, {}).get("stats", empty_stats())
 
+    ensure_user(user_id)
     user_sessions[user_id] = {
         "mode": "mixed",
         "figure": None,
@@ -96,7 +95,6 @@ async def mixed_mode(message: Message, bot: Bot):
         "correct": 0,
         "wrong": 0,
         "task_ids": [],
-        "stats": existing_stats,
     }
 
     await message.answer(

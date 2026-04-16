@@ -4,8 +4,9 @@ from aiogram import Bot, F, Router
 from aiogram.types import CallbackQuery, ReplyKeyboardRemove
 
 from keyboards import answer_options_kb, main_menu_kb, next_task_kb
-from storage import empty_stats, user_sessions
+from storage import user_sessions
 from tasks import TASKS
+from database import ensure_user, add_answer_result
 
 import random
 
@@ -131,8 +132,7 @@ async def start_tasks(callback: CallbackQuery, bot: Bot) -> None:
     figure = callback.data.split(":")[1]
     user_id = callback.from_user.id
 
-    existing_stats = user_sessions.get(user_id, {}).get("stats", empty_stats())
-
+    ensure_user(user_id)
     user_sessions[user_id] = {
         "mode": "figure",
         "figure": figure,
@@ -141,7 +141,6 @@ async def start_tasks(callback: CallbackQuery, bot: Bot) -> None:
         "correct": 0,
         "wrong": 0,
         "task_ids": [],
-        "stats": existing_stats,
     }
 
     await callback.answer()
@@ -170,14 +169,13 @@ async def check_answer(callback: CallbackQuery) -> None:
     task = next(task for task in TASKS if task["id"] == task_id)
     correct_option = task["correct_option"]
     figure = task["figure"]
-    figure_stats = session["stats"][figure]
 
     session["answered_task_ids"].add(task_id)
     await callback.message.edit_reply_markup(reply_markup=None)
 
     if selected_option == correct_option:
         session["correct"] += 1
-        figure_stats["correct"] += 1
+        add_answer_result(user_id, figure, True)
 
         text = (
             f"✅ Верно!\n\n"
@@ -186,7 +184,7 @@ async def check_answer(callback: CallbackQuery) -> None:
         )
     else:
         session["wrong"] += 1
-        figure_stats["wrong"] += 1
+        add_answer_result(user_id, figure, False)
 
         text = (
             f"❌ Неверно.\n\n"
