@@ -1,4 +1,3 @@
-import json
 import sqlite3
 from pathlib import Path
 from typing import Any
@@ -23,19 +22,6 @@ def init_db() -> None:
                 telegram_id INTEGER PRIMARY KEY,
                 role TEXT NOT NULL DEFAULT 'student',
                 full_name TEXT
-            )
-            """
-        )
-
-        cursor.execute(
-            """
-            CREATE TABLE IF NOT EXISTS stats (
-                user_id INTEGER NOT NULL,
-                figure TEXT NOT NULL,
-                correct INTEGER NOT NULL DEFAULT 0,
-                wrong INTEGER NOT NULL DEFAULT 0,
-                PRIMARY KEY (user_id, figure),
-                FOREIGN KEY (user_id) REFERENCES users(telegram_id)
             )
             """
         )
