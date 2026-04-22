@@ -129,26 +129,28 @@ async def send_current_task(chat_id: int, bot: Bot, user_id: int) -> None:
 
 
 @router.callback_query(F.data.startswith("start_tasks:"))
-async def start_tasks(callback: CallbackQuery, bot: Bot) -> None:
+async def start_tasks(callback: CallbackQuery) -> None:
     figure = callback.data.split(":")[1]
+    user_id = callback.from_user.id
+
+    figure_tasks = [task for task in TASKS if task["figure"] == figure]
+
+    user_sessions[user_id] = {
+        "mode": "figure",
+        "figure": figure,
+        "index": 0,
+        "answered_task_ids": set(),
+        "correct": 0,
+        "wrong": 0,
+        "tasks": figure_tasks,
+    }
+
     await callback.answer()
-    await start_user_session(
-        chat_id=callback.message.chat.id,
-        user_id=callback.from_user.id,
-        bot=bot,
-        mode="figure",
-        figure=figure,
+    await callback.message.answer(
+        "Начинаем задачи.",
+        reply_markup=ReplyKeyboardRemove(),
     )
-
-
-@router.message(F.text == "Смешанный режим")
-async def mixed_mode(message: Message, bot: Bot) -> None:
-    await start_user_session(
-        chat_id=message.chat.id,
-        user_id=message.from_user.id,
-        bot=bot,
-        mode="mixed",
-    )
+    await send_current_task(callback.message.chat.id, callback.bot, user_id)
 
 
 @router.callback_query(F.data.startswith("answer:"))

@@ -8,6 +8,8 @@ from handlers.practice import send_current_task
 from keyboards import figures_kb, main_menu_kb, teacher_menu_kb
 from storage import user_sessions
 from texts import HELP_TEXT
+from tasks import TASKS
+import random
 
 router = Router()
 
@@ -184,6 +186,9 @@ async def mixed_mode(message: Message, bot: Bot) -> None:
 
     user_id = message.from_user.id
 
+    mixed_tasks = TASKS[:]
+    random.shuffle(mixed_tasks)
+
     user_sessions[user_id] = {
         "mode": "mixed",
         "figure": None,
@@ -191,7 +196,7 @@ async def mixed_mode(message: Message, bot: Bot) -> None:
         "answered_task_ids": set(),
         "correct": 0,
         "wrong": 0,
-        "task_ids": [],
+        "tasks": mixed_tasks,
     }
 
     await message.answer(
